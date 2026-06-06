@@ -26,12 +26,8 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1.5rem;
   }
 
-  /* noise overlay */
   body::before {
     content: '';
     position: fixed; inset: 0;
@@ -41,44 +37,67 @@
     opacity: 0.6;
   }
 
-  .wrap {
+  /* ── Header ── */
+  header {
     position: relative;
     z-index: 1;
-    width: 100%;
-    max-width: 700px;
     text-align: center;
+    padding: 2.5rem 1.5rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
   }
 
   .rule {
-    width: 60%;
-    margin: 0 auto 1.4rem;
+    width: 60%; max-width: 500px;
+    margin: 0 auto 1.2rem;
     height: 3px;
     background: linear-gradient(90deg, transparent, var(--ink) 20%, var(--ink) 80%, transparent);
   }
 
   h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-size: clamp(2rem, 5vw, 3.4rem);
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
   }
 
   .tagline {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--muted);
-    margin: 0.6rem 0 3rem;
+    margin-top: 0.45rem;
   }
 
-  .cards {
+  /* ── Main layout ── */
+  .layout {
+    position: relative;
+    z-index: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.4rem;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+    flex: 1;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    align-items: start;
+    gap: 2.5rem;
   }
 
-  @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; padding: 1.5rem 1rem; }
+  }
+
+  /* ── Left: nav cards ── */
+  .nav-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: sticky;
+    top: 2rem;
+  }
 
   .card {
     display: block;
@@ -87,10 +106,9 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 2.4rem 2rem;
+    padding: 2rem 1.8rem;
     box-shadow: 5px 5px 0 var(--border);
     transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
-    cursor: pointer;
   }
 
   .card:hover {
@@ -99,35 +117,20 @@
     background: #f0ebe0;
   }
 
-  .card:active {
-    transform: translate(1px, 1px);
-    box-shadow: 3px 3px 0 var(--border);
-  }
+  .card:active { transform: translate(1px,1px); box-shadow: 3px 3px 0 var(--border); }
 
-  .card-icon {
-    font-size: 2.4rem;
-    line-height: 1;
-    margin-bottom: 1rem;
-  }
+  .card-icon  { font-size: 2rem; line-height: 1; margin-bottom: 0.8rem; }
 
   .card-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
-  .card-desc {
-    font-size: 0.8rem;
-    color: var(--muted);
-    line-height: 1.6;
-    letter-spacing: 0.02em;
-  }
+  .card-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
 
-  .card.primary {
-    border-color: var(--ink);
-    box-shadow: 5px 5px 0 var(--ink);
-  }
+  .card.primary { border-color: var(--ink); box-shadow: 5px 5px 0 var(--ink); }
   .card.primary:hover {
     box-shadow: 7px 7px 0 var(--ink);
     background: var(--ink);
@@ -135,40 +138,176 @@
   }
   .card.primary:hover .card-desc { color: #c8bfb0; }
 
+  /* ── Right: latest posts ── */
+  .feed-panel {}
+
+  .feed-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 3px double var(--border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .feed-heading span {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .feed-heading a {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.2s;
+  }
+  .feed-heading a:hover { color: var(--ink); }
+
+  .post-item {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    animation: fadeUp 0.3s ease both;
+  }
+  .post-item:last-child { border-bottom: none; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-content {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  .post-meta {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .post-meta strong { color: var(--ink); font-weight: 500; }
+
+  .post-stat {
+    font-size: 0.68rem;
+    color: var(--muted);
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.35rem;
+  }
+
+  .loader {
+    padding: 2rem 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   footer {
     position: relative;
     z-index: 1;
-    margin-top: 3rem;
-    font-size: 0.68rem;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    font-size: 0.67rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--border);
+    border-top: 1px solid var(--border);
   }
 </style>
 </head>
 <body>
 
-<div class="wrap">
+<header>
   <div class="rule"></div>
   <h1>Thought Board</h1>
   <p class="tagline">A public journal of passing ideas</p>
+</header>
 
-  <div class="cards">
+<div class="layout">
+
+  <!-- Left: nav cards -->
+  <aside class="nav-cards">
     <a class="card primary" href="/thoughts">
       <div class="card-icon">&#9997;&#65039;</div>
       <div class="card-title">Thoughts</div>
       <p class="card-desc">Read, write, like and comment on thoughts shared by everyone.</p>
     </a>
-
     <a class="card" href="/dashboard">
       <div class="card-icon">&#128202;</div>
       <div class="card-title">Dashboard</div>
       <p class="card-desc">Explore stats — top writers, most liked posts, visitor counts and more.</p>
     </a>
-  </div>
+  </aside>
+
+  <!-- Right: latest posts -->
+  <section class="feed-panel">
+    <div class="feed-heading">
+      <span>Latest thoughts</span>
+      <a href="/thoughts">See all &rarr;</a>
+    </div>
+    <div id="feed"><div class="loader">Loading…</div></div>
+  </section>
+
 </div>
 
 <footer>Thought Board &mdash; 2026 &middot; by Arya</footer>
 
+<script>
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function relTime(iso) {
+    const diff = (Date.now() - new Date(iso + 'Z')) / 1000;
+    if (diff < 60)    return 'just now';
+    if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  async function loadLatest() {
+    try {
+      const res  = await fetch('/api/thoughts?limit=8');
+      const data = await res.json();
+      const feed = document.getElementById('feed');
+
+      if (!data.length) {
+        feed.innerHTML = '<div class="loader">No thoughts yet. Be the first!</div>';
+        return;
+      }
+
+      feed.innerHTML = data.map(t => `
+        <div class="post-item">
+          <p class="post-content">"${escHtml(t.content)}"</p>
+          <div class="post-meta">
+            <strong>${escHtml(t.author)}</strong>
+            <span>&middot; ${relTime(t.created_at)}</span>
+          </div>
+          <div class="post-stat">
+            <span>&#9825; ${t.like_count} like${t.like_count !== 1 ? 's' : ''}</span>
+            <span>&#128172; ${(t.comments||[]).length} comment${(t.comments||[]).length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>`).join('');
+    } catch {
+      document.getElementById('feed').innerHTML = '<div class="loader">Could not load posts.</div>';
+    }
+  }
+
+  loadLatest();
+  fetch('/api/visit', { method: 'POST' });
+</script>
 </body>
 </html>
