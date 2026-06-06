@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thought Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:    #1a1410;
+    --paper:  #f5f0e8;
+    --muted:  #8a7f72;
+    --border: #d4c9b5;
+    --card:   #faf7f2;
+    --accent: #c0392b;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+  }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+  }
+
+  .rule {
+    width: 60%;
+    margin: 0 auto 1.4rem;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--ink) 20%, var(--ink) 80%, transparent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .tagline {
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.6rem 0 3rem;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+
+  @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
+
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2.4rem 2rem;
+    box-shadow: 5px 5px 0 var(--border);
+    transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 var(--border);
+    background: #f0ebe0;
+  }
+
+  .card:active {
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0 var(--border);
+  }
+
+  .card-icon {
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+  }
+
+  .card.primary {
+    border-color: var(--ink);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+  .card.primary:hover {
+    box-shadow: 7px 7px 0 var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .card.primary:hover .card-desc { color: #c8bfb0; }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 3rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="rule"></div>
+  <h1>Thought Board</h1>
+  <p class="tagline">A public journal of passing ideas</p>
+
+  <div class="cards">
+    <a class="card primary" href="/thoughts">
+      <div class="card-icon">&#9997;&#65039;</div>
+      <div class="card-title">Thoughts</div>
+      <p class="card-desc">Read, write, like and comment on thoughts shared by everyone.</p>
+    </a>
+
+    <a class="card" href="/dashboard">
+      <div class="card-icon">&#128202;</div>
+      <div class="card-title">Dashboard</div>
+      <p class="card-desc">Explore stats — top writers, most liked posts, visitor counts and more.</p>
+    </a>
+  </div>
+</div>
+
+<footer>Thought Board &mdash; 2026 &middot; by Arya</footer>
+
+</body>
+</html>

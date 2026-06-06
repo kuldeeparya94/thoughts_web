@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — Thought Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:    #1a1410;
+    --paper:  #f5f0e8;
+    --accent: #c0392b;
+    --muted:  #8a7f72;
+    --border: #d4c9b5;
+    --card:   #faf7f2;
+    --green:  #2d8a4e;
+    --blue:   #2563a8;
+    --gold:   #b8860b;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  header a {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 0.4rem 1rem;
+    border-radius: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  header a:hover { color: var(--ink); border-color: var(--ink); }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    margin: 2rem 0 1rem;
+  }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.2rem 1.4rem;
+    box-shadow: 3px 3px 0 var(--border);
+  }
+
+  .stat-card .label {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-card .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-card.visits .value  { color: var(--blue); }
+  .stat-card.writers .value { color: var(--green); }
+  .stat-card.likes .value   { color: var(--accent); }
+  .stat-card.comments .value{ color: var(--gold); }
+  .stat-card.thoughts .value{ color: var(--ink); }
+
+  /* ── Tables ── */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  th {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    text-align: left;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f0ebe0; }
+
+  .rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    width: 2rem;
+  }
+
+  .rank-1 { color: #b8860b; }
+  .rank-2 { color: #888; }
+  .rank-3 { color: #a0522d; }
+
+  .excerpt {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 0.15rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 20px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .loader {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#9998; Dashboard</h1>
+  <a href="/">&#8592; Home</a>
+</header>
+
+<div class="container">
+  <div id="content"><div class="loader">Loading stats…</div></div>
+</div>
+
+<script>
+  const API = '';
+
+  async function load() {
+    const res  = await fetch(`${API}/api/dashboard`);
+    const d    = await res.json();
+    const el   = document.getElementById('content');
+
+    el.innerHTML = `
+      <p class="section-title">Overview</p>
+      <div class="stat-grid">
+        <div class="stat-card visits">
+          <div class="label">Site Visitors</div>
+          <div class="value">${d.total_visits}</div>
+        </div>
+        <div class="stat-card writers">
+          <div class="label">Writers</div>
+          <div class="value">${d.total_writers}</div>
+        </div>
+        <div class="stat-card thoughts">
+          <div class="label">Thoughts</div>
+          <div class="value">${d.total_thoughts}</div>
+        </div>
+        <div class="stat-card likes">
+          <div class="label">Total Likes</div>
+          <div class="value">${d.total_likes}</div>
+        </div>
+        <div class="stat-card comments">
+          <div class="label">Total Comments</div>
+          <div class="value">${d.total_comments}</div>
+        </div>
+      </div>
+
+      <p class="section-title">Top Posts by Likes</p>
+      <div class="table-wrap">${buildTable(d.top_liked, 'likes', '&#9825; Likes')}</div>
+
+      <p class="section-title">Most Commented Posts</p>
+      <div class="table-wrap">${buildTable(d.top_commented, 'comments', '&#128172; Comments')}</div>
+
+      <p class="section-title">Top Writers</p>
+      <div class="table-wrap">${buildWritersTable(d.top_writers)}</div>
+    `;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function rankLabel(i) {
+    const cls = i < 3 ? `rank rank-${i+1}` : 'rank';
+    const medals = ['&#127945;','&#129352;','&#129353;'];
+    return `<td class="${cls}">${medals[i] ?? i+1}</td>`;
+  }
+
+  function buildTable(rows, countKey, countLabel) {
+    if (!rows.length) return '<p style="padding:1rem;color:var(--muted);font-size:0.82rem;">No data yet.</p>';
+    const header = `<thead><tr><th>#</th><th>Author</th><th>Thought</th><th>${countLabel}</th></tr></thead>`;
+    const body = rows.map((r, i) => `
+      <tr>
+        ${rankLabel(i)}
+        <td><strong>${esc(r.author)}</strong></td>
+        <td><span class="excerpt">"${esc(r.content)}${r.content.length >= 80 ? '…' : ''}"</span></td>
+        <td><span class="badge">${r[countKey]}</span></td>
+      </tr>`).join('');
+    return `<table>${header}<tbody>${body}</tbody></table>`;
+  }
+
+  function buildWritersTable(rows) {
+    if (!rows.length) return '<p style="padding:1rem;color:var(--muted);font-size:0.82rem;">No data yet.</p>';
+    const header = `<thead><tr><th>#</th><th>Writer</th><th>&#128196; Thoughts Published</th></tr></thead>`;
+    const body = rows.map((r, i) => `
+      <tr>
+        ${rankLabel(i)}
+        <td><strong>${esc(r.author)}</strong></td>
+        <td><span class="badge">${r.count}</span></td>
+      </tr>`).join('');
+    return `<table>${header}<tbody>${body}</tbody></table>`;
+  }
+
+  load();
+</script>
+</body>
+</html>

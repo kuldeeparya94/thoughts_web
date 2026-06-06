@@ -257,6 +257,86 @@
   }
   .btn-delete:hover { color: var(--accent); }
 
+  /* ── Interactions bar ── */
+  .interactions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.4rem;
+  }
+
+  .btn-like {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--muted);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .btn-like:hover       { border-color: var(--ink); color: var(--ink); }
+  .btn-like.liked       { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .btn-toggle-comments {
+    background: none;
+    border: none;
+    font-size: 0.78rem;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .btn-toggle-comments:hover { color: var(--ink); }
+
+  /* ── Comments section ── */
+  .comments-section {
+    grid-column: 1 / -1;
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--border);
+  }
+  .comments-section.open { display: flex; }
+
+  .comment-item {
+    font-size: 0.82rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .comment-item span { color: var(--muted); font-size: 0.72rem; margin-left: 0.4rem; }
+
+  .comment-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+  .comment-form input {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .comment-form button {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border-radius: 1px;
+    white-space: nowrap;
+  }
+  .comment-form button:hover { background: #333; }
+
   /* ── Empty state ── */
   .empty {
     text-align: center;
@@ -300,7 +380,7 @@
     <h1>Thought Board</h1>
     <p class="tagline">A public journal of passing ideas</p>
   </div>
-  <div class="edition-bar">Open to all · Unfiltered · Ephemeral</div>
+  <div class="edition-bar">Open to all · Unfiltered · Ephemeral &nbsp;|&nbsp; <a href="/" style="color:var(--muted);text-decoration:none;letter-spacing:0.1em;">&#8962; Home</a> &nbsp;|&nbsp; <a href="/dashboard" style="color:var(--muted);text-decoration:none;letter-spacing:0.1em;">&#9998; Dashboard</a></div>
 </header>
 
 <main class="container">
@@ -326,15 +406,23 @@
     <span class="feed-label">Latest thoughts</span>
     <span id="stats-count">Loading…</span>
   </div>
+  <div style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">
+    ✍️ <span id="writers-count"></span>
+  </div>
 
   <div id="feed"><div class="loader">Loading…</div></div>
 
 </main>
 
-<footer>Thought Board &mdash; Built with FastAPI &amp; SQLite</footer>
+<footer>Thought Board &mdash; 2026 Thought Board by Arya</footer>
 
 <script>
   const API = '';   // same origin; change to 'http://localhost:8000' for dev with separate servers
+
+  // ── Owner token (persisted per browser) ──
+  if (!localStorage.getItem('owner_token'))
+    localStorage.setItem('owner_token', crypto.randomUUID());
+  const MY_TOKEN = localStorage.getItem('owner_token');
 
   // ── Char counter ──
   const contentEl = document.getElementById('content');
@@ -348,7 +436,7 @@
   // ── Fetch feed ──
   async function loadThoughts() {
     try {
-      const res  = await fetch(`${API}/api/thoughts`);
+      const res  = await fetch(`${API}/api/thoughts?voter_token=${MY_TOKEN}`);
       const data = await res.json();
       renderFeed(data);
     } catch {
@@ -364,6 +452,8 @@
       const data = await res.json();
       document.getElementById('stats-count').textContent =
         `${data.total_thoughts} thought${data.total_thoughts !== 1 ? 's' : ''} published`;
+      document.getElementById('writers-count').textContent =
+        `${data.unique_writers} writer${data.unique_writers !== 1 ? 's' : ''} so far`;
     } catch {}
   }
 
@@ -376,16 +466,75 @@
       </div>`;
       return;
     }
-    feed.innerHTML = thoughts.map(t => `
+    feed.innerHTML = thoughts.map(t => {
+      const canDelete = t.owner_token === MY_TOKEN;
+      const commentsHtml = (t.comments || []).map(c => `
+        <div class="comment-item">
+          <strong>${escHtml(c.author)}</strong>: ${escHtml(c.content)}
+          <span>${relTime(c.created_at)}</span>
+        </div>`).join('');
+      return `
       <article class="thought-card" id="card-${t.id}">
         <p class="thought-content">"${escHtml(t.content)}"</p>
         <p class="thought-meta">
           <span class="thought-author">${escHtml(t.author)}</span>
           &nbsp;·&nbsp;${relTime(t.created_at)}
         </p>
-        <button class="btn-delete" title="Delete" onclick="deleteThought(${t.id})">✕</button>
-      </article>
-    `).join('');
+        ${canDelete
+          ? `<button class="btn-delete" title="Delete" onclick="deleteThought(${t.id})">&#x2715;</button>`
+          : `<span></span>`}
+        <div class="interactions">
+          <button class="btn-like ${t.liked ? 'liked' : ''}" id="like-btn-${t.id}" onclick="toggleLike(${t.id})">
+            &#9825; <span id="like-count-${t.id}">${t.like_count}</span>
+          </button>
+          <button class="btn-toggle-comments" onclick="toggleComments(${t.id})">
+            &#128172; <span id="cmt-count-${t.id}">${(t.comments||[]).length}</span> comment${(t.comments||[]).length !== 1 ? 's' : ''}
+          </button>
+        </div>
+        <div class="comments-section" id="comments-${t.id}">
+          <div id="comments-list-${t.id}">${commentsHtml}</div>
+          <div class="comment-form">
+            <input type="text" id="cmt-input-${t.id}" placeholder="Write a comment…" maxlength="300"/>
+            <button onclick="postComment(${t.id})">Reply</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  // ── Like ──
+  async function toggleLike(id) {
+    const res  = await fetch(`${API}/api/thoughts/${id}/like?voter_token=${MY_TOKEN}`, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById(`like-count-${id}`).textContent = data.like_count;
+    document.getElementById(`like-btn-${id}`).classList.toggle('liked', data.liked);
+  }
+
+  // ── Comments ──
+  function toggleComments(id) {
+    document.getElementById(`comments-${id}`).classList.toggle('open');
+  }
+
+  async function postComment(id) {
+    const input   = document.getElementById(`cmt-input-${id}`);
+    const content = input.value.trim();
+    if (!content) return;
+    const author = document.getElementById('author').value.trim() || 'Anonymous';
+    const res = await fetch(`${API}/api/thoughts/${id}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author, content }),
+    });
+    if (!res.ok) return;
+    const c = await res.json();
+    input.value = '';
+    document.getElementById(`comments-list-${id}`).insertAdjacentHTML('beforeend', `
+      <div class="comment-item">
+        <strong>${escHtml(c.author)}</strong>: ${escHtml(c.content)}
+        <span>${relTime(c.created_at)}</span>
+      </div>`);
+    const countEl = document.getElementById(`cmt-count-${id}`);
+    countEl.textContent = parseInt(countEl.textContent) + 1;
   }
 
   // ── Post ──
@@ -403,7 +552,7 @@
       const res = await fetch(`${API}/api/thoughts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author, content }),
+        body: JSON.stringify({ author, content, owner_token: MY_TOKEN }),
       });
       if (!res.ok) { const e = await res.json(); return showToast(e.detail); }
       contentEl.value = '';
@@ -419,11 +568,11 @@
     }
   }
 
-  // ── Delete ──
   async function deleteThought(id) {
     if (!confirm('Remove this thought?')) return;
     try {
-      await fetch(`${API}/api/thoughts/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API}/api/thoughts/${id}?token=${MY_TOKEN}`, { method: 'DELETE' });
+      if (res.status === 403) return showToast('You can only delete your own thoughts.');
       document.getElementById(`card-${id}`)?.remove();
       loadStats();
       if (!document.querySelector('.thought-card')) {
@@ -463,6 +612,7 @@
   });
 
   loadThoughts();
+  fetch(`${API}/api/visit`, { method: 'POST' });
 </script>
 </body>
 </html>
