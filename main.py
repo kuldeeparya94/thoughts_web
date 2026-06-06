@@ -57,7 +57,7 @@ class ThoughtOut(BaseModel):
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(title="Thoughts Board", version="1.0")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "https://kuldeeparya94.github.io","http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "https://kuldeeparya94.github.io").split(",")
 
 app.add_middleware(
     CORSMiddleware,
