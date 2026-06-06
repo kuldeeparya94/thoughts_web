@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: thoughts-board
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://thoughts-board.onrender.com
+      - key: DATABASE_URL
+        value: sqlite:///./thoughts.db

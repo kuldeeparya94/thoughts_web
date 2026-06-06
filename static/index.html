@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thought Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:    #1a1410;
+    --paper:  #f5f0e8;
+    --cream:  #ede7d6;
+    --accent: #c0392b;
+    --muted:  #8a7f72;
+    --border: #d4c9b5;
+    --card:   #faf7f2;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 0 1.5rem;
+    text-align: center;
+    background: var(--paper);
+  }
+
+  .masthead-rule {
+    width: 80%; max-width: 700px;
+    margin: 0 auto 1.2rem;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--ink) 20%, var(--ink) 80%, transparent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .tagline {
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  .edition-bar {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0;
+    margin-top: 1.2rem;
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Compose box ── */
+  .compose {
+    margin: 2.5rem auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.8rem 2rem;
+    box-shadow: 4px 4px 0 var(--border);
+  }
+
+  .compose-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.6rem;
+  }
+
+  .compose-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+  }
+
+  @media (max-width: 520px) { .compose-row { grid-template-columns: 1fr; } }
+
+  input, textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    padding: 0.6rem 0.8rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  input:focus, textarea:focus { border-color: var(--ink); }
+
+  .char-counter {
+    text-align: right;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+    transition: color 0.2s;
+  }
+  .char-counter.warn { color: var(--accent); }
+
+  .btn-post {
+    margin-top: 1rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 0.65rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    border-radius: 1px;
+  }
+
+  .btn-post:hover  { background: #333; }
+  .btn-post:active { transform: scale(0.98); }
+  .btn-post:disabled { background: var(--muted); cursor: not-allowed; }
+
+  /* Toast */
+  .toast {
+    display: inline-block;
+    margin-left: 1rem;
+    font-size: 0.78rem;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Feed ── */
+  .feed-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-top: 3px double var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .feed-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  #stats-count {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Cards ── */
+  #feed { display: flex; flex-direction: column; gap: 0; }
+
+  .thought-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 1.3rem 1.6rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem 1rem;
+    animation: fadeUp 0.35s ease both;
+    position: relative;
+  }
+
+  .thought-card:first-child { border-top: 1px solid var(--border); }
+
+  .thought-card:hover { background: #f7f3ec; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .thought-content {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    grid-column: 1 / -1;
+    color: var(--ink);
+  }
+
+  .thought-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    align-self: end;
+  }
+
+  .thought-author {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .btn-delete {
+    background: none;
+    border: none;
+    color: var(--border);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 0.3rem;
+    line-height: 1;
+    transition: color 0.2s;
+    align-self: start;
+  }
+  .btn-delete:hover { color: var(--accent); }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--muted);
+  }
+  .empty p:first-child {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    margin-bottom: 0.4rem;
+  }
+  .empty p:last-child { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ── Loader ── */
+  .loader {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  footer {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--border);
+    position: relative; z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead-rule"></div>
+  <div class="container">
+    <h1>Thought Board</h1>
+    <p class="tagline">A public journal of passing ideas</p>
+  </div>
+  <div class="edition-bar">Open to all · Unfiltered · Ephemeral</div>
+</header>
+
+<main class="container">
+
+  <!-- Compose -->
+  <section class="compose">
+    <p class="compose-title">— Share a thought with the world</p>
+    <div class="compose-row">
+      <input id="author" type="text" maxlength="50" placeholder="Your name (optional)"/>
+      <div></div>
+    </div>
+    <textarea id="content" rows="4" maxlength="500"
+      placeholder="What's on your mind? Write freely…"></textarea>
+    <div class="char-counter" id="counter">0 / 500</div>
+    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.8rem;">
+      <button class="btn-post" id="postBtn" onclick="postThought()">Publish</button>
+      <span class="toast" id="toast"></span>
+    </div>
+  </section>
+
+  <!-- Feed -->
+  <div class="feed-header">
+    <span class="feed-label">Latest thoughts</span>
+    <span id="stats-count">Loading…</span>
+  </div>
+
+  <div id="feed"><div class="loader">Loading…</div></div>
+
+</main>
+
+<footer>Thought Board &mdash; Built with FastAPI &amp; SQLite</footer>
+
+<script>
+  const API = '';   // same origin; change to 'http://localhost:8000' for dev with separate servers
+
+  // ── Char counter ──
+  const contentEl = document.getElementById('content');
+  const counter   = document.getElementById('counter');
+  contentEl.addEventListener('input', () => {
+    const n = contentEl.value.length;
+    counter.textContent = `${n} / 500`;
+    counter.classList.toggle('warn', n > 420);
+  });
+
+  // ── Fetch feed ──
+  async function loadThoughts() {
+    try {
+      const res  = await fetch(`${API}/api/thoughts`);
+      const data = await res.json();
+      renderFeed(data);
+    } catch {
+      document.getElementById('feed').innerHTML =
+        '<div class="loader">Could not connect to server.</div>';
+    }
+    loadStats();
+  }
+
+  async function loadStats() {
+    try {
+      const res  = await fetch(`${API}/api/stats`);
+      const data = await res.json();
+      document.getElementById('stats-count').textContent =
+        `${data.total_thoughts} thought${data.total_thoughts !== 1 ? 's' : ''} published`;
+    } catch {}
+  }
+
+  function renderFeed(thoughts) {
+    const feed = document.getElementById('feed');
+    if (!thoughts.length) {
+      feed.innerHTML = `<div class="empty">
+        <p>No thoughts yet.</p>
+        <p>Be the first to write something</p>
+      </div>`;
+      return;
+    }
+    feed.innerHTML = thoughts.map(t => `
+      <article class="thought-card" id="card-${t.id}">
+        <p class="thought-content">"${escHtml(t.content)}"</p>
+        <p class="thought-meta">
+          <span class="thought-author">${escHtml(t.author)}</span>
+          &nbsp;·&nbsp;${relTime(t.created_at)}
+        </p>
+        <button class="btn-delete" title="Delete" onclick="deleteThought(${t.id})">✕</button>
+      </article>
+    `).join('');
+  }
+
+  // ── Post ──
+  async function postThought() {
+    const author  = document.getElementById('author').value.trim() || 'Anonymous';
+    const content = contentEl.value.trim();
+    if (!content) return showToast('Write something first.');
+    if (content.length > 500) return showToast('Too long (max 500 chars).');
+
+    const btn = document.getElementById('postBtn');
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+
+    try {
+      const res = await fetch(`${API}/api/thoughts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author, content }),
+      });
+      if (!res.ok) { const e = await res.json(); return showToast(e.detail); }
+      contentEl.value = '';
+      counter.textContent = '0 / 500';
+      counter.classList.remove('warn');
+      showToast('Published ✓', false);
+      await loadThoughts();
+    } catch {
+      showToast('Server error. Is the backend running?');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Publish';
+    }
+  }
+
+  // ── Delete ──
+  async function deleteThought(id) {
+    if (!confirm('Remove this thought?')) return;
+    try {
+      await fetch(`${API}/api/thoughts/${id}`, { method: 'DELETE' });
+      document.getElementById(`card-${id}`)?.remove();
+      loadStats();
+      if (!document.querySelector('.thought-card')) {
+        document.getElementById('feed').innerHTML = `<div class="empty">
+          <p>No thoughts yet.</p><p>Be the first to write something</p></div>`;
+      }
+    } catch {
+      showToast('Could not delete.');
+    }
+  }
+
+  // ── Helpers ──
+  function showToast(msg, isErr = true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.color = isErr ? 'var(--accent)' : '#2d8a4e';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function relTime(iso) {
+    const diff = (Date.now() - new Date(iso + 'Z')) / 1000;
+    if (diff < 60)   return 'just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
+    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  // Enter key to submit
+  contentEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) postThought();
+  });
+
+  loadThoughts();
+</script>
+</body>
+</html>
